@@ -363,9 +363,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :return: Superset custom DBAPI exception
         """
         new_exception = cls.get_dbapi_exception_mapping().get(type(exception))
-        if not new_exception:
-            return exception
-        return new_exception(str(exception))
+        return new_exception(str(exception)) if new_exception else exception
 
     @classmethod
     def get_allow_cost_estimate(  # pylint: disable=unused-argument
@@ -422,12 +420,10 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
                     f"No grain spec for {time_grain} for database {cls.engine}"
                 )
             if type_ and "{func}" in time_expr:
-                date_trunc_function = cls._date_trunc_functions.get(type_)
-                if date_trunc_function:
+                if date_trunc_function := cls._date_trunc_functions.get(type_):
                     time_expr = time_expr.replace("{func}", date_trunc_function)
             if type_ and "{type}" in time_expr:
-                date_trunc_function = cls._date_trunc_functions.get(type_)
-                if date_trunc_function:
+                if date_trunc_function := cls._date_trunc_functions.get(type_):
                     time_expr = time_expr.replace("{type}", type_)
         else:
             time_expr = "{col}"
@@ -489,17 +485,15 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
 
         second_minute_hour = ["S", "M", "H"]
         day_week_month_year = ["D", "W", "M", "Y"]
-        is_less_than_day = result.group(2) == "PT"
-        interval = result.group(4)
-        epoch_time_start_string = result.group(1) or result.group(5)
+        is_less_than_day = result[2] == "PT"
+        interval = result[4]
+        epoch_time_start_string = result[1] or result[5]
         has_starting_or_ending = bool(len(epoch_time_start_string or ""))
 
         def sort_day_week() -> int:
             if has_starting_or_ending:
                 return pos["LAST"]
-            if is_less_than_day:
-                return pos["SECOND"]
-            return pos["THIRD"]
+            return pos["SECOND"] if is_less_than_day else pos["THIRD"]
 
         def sort_interval() -> float:
             if is_less_than_day:
@@ -514,8 +508,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
             0: sort_day_week(),
             1: pos["SECOND"] if is_less_than_day else pos["THIRD"],
             2: sort_interval(),
-            3: float(result.group(3)),
+            3: float(result[3]),
         }
+
 
         return plist.get(index, 0)
 
@@ -712,7 +707,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
             cte = cte + "\n"
         else:
             cte = ""
-            str_statement = str(sql)
+            str_statement = sql
         str_statement = str_statement.replace("\n", " ").replace("\r", "")
 
         tokens = str_statement.rstrip().split(" ")
@@ -743,10 +738,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
 
     @classmethod
     def top_not_in_sql(cls, sql: str) -> bool:
-        for top_word in cls.top_keywords:
-            if top_word.upper() in sql.upper():
-                return False
-        return True
+        return all(
+            top_word.upper() not in sql.upper() for top_word in cls.top_keywords
+        )
 
     @classmethod
     def get_limit_from_sql(cls, sql: str) -> Optional[int]:
@@ -780,21 +774,20 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :return: CTE with the main select query aliased as `__cte`
 
         """
-        if not cls.allows_cte_in_subquery:
-            stmt = sqlparse.parse(sql)[0]
+        if cls.allows_cte_in_subquery:
+            return None
+        stmt = sqlparse.parse(sql)[0]
 
-            # The first meaningful token for CTE will be with WITH
-            idx, token = stmt.token_next(-1, skip_ws=True, skip_cm=True)
-            if not (token and token.ttype == CTE):
-                return None
-            idx, token = stmt.token_next(idx)
-            idx = stmt.token_index(token) + 1
+        # The first meaningful token for CTE will be with WITH
+        idx, token = stmt.token_next(-1, skip_ws=True, skip_cm=True)
+        if not (token and token.ttype == CTE):
+            return None
+        idx, token = stmt.token_next(idx)
+        idx = stmt.token_index(token) + 1
 
-            # extract rest of the SQLs after CTE
-            remainder = "".join(str(token) for token in stmt.tokens[idx:]).strip()
-            return f"WITH {token.value},\n{CTE_ALIAS} AS (\n{remainder}\n)"
-
-        return None
+        # extract rest of the SQLs after CTE
+        remainder = "".join(str(token) for token in stmt.tokens[idx:]).strip()
+        return f"WITH {token.value},\n{CTE_ALIAS} AS (\n{remainder}\n)"
 
     @classmethod
     def df_to_sql(
@@ -907,8 +900,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
 
         context = context or {}
         for regex, (message, error_type, extra) in cls.custom_errors.items():
-            match = regex.search(raw_message)
-            if match:
+            if match := regex.search(raw_message):
                 params = {**context, **match.groupdict()}
                 extra["engine_name"] = cls.engine_name
                 return [
@@ -1166,8 +1158,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         """
         parsed_query = ParsedQuery(statement)
         sql = parsed_query.stripped()
-        sql_query_mutator = current_app.config["SQL_QUERY_MUTATOR"]
-        if sql_query_mutator:
+        if sql_query_mutator := current_app.config["SQL_QUERY_MUTATOR"]:
             sql = sql_query_mutator(
                 sql,
                 user_name=user_name,
@@ -1305,12 +1296,13 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         if not column_type:
             return None
         for regex, sqla_type, generic_type in column_type_mappings:
-            match = regex.match(column_type)
-            if not match:
-                continue
-            if callable(sqla_type):
-                return sqla_type(match), generic_type
-            return sqla_type, generic_type
+            if match := regex.match(column_type):
+                return (
+                    (sqla_type(match), generic_type)
+                    if callable(sqla_type)
+                    else (sqla_type, generic_type)
+                )
+
         return None
 
     @staticmethod
@@ -1439,7 +1431,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
             return
         try:
             encrypted_extra = json.loads(database.encrypted_extra)
-            params.update(encrypted_extra)
+            params |= encrypted_extra
         except json.JSONDecodeError as ex:
             logger.error(ex, exc_info=True)
             raise ex
@@ -1477,10 +1469,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :param column_type_mappings: Maps from string to SqlAlchemy TypeEngine
         :return: ColumnSpec object
         """
-        col_types = cls.get_sqla_column_type(
+        if col_types := cls.get_sqla_column_type(
             native_type, column_type_mappings=column_type_mappings
-        )
-        if col_types:
+        ):
             column_type, generic_type = col_types
             # wrap temporal types in custom type that supports literal binding
             # using datetimes
@@ -1667,9 +1658,7 @@ class BasicParametersMixin:
 
         required = {"host", "port", "username", "database"}
         present = {key for key in parameters if parameters.get(key, ())}
-        missing = sorted(required - present)
-
-        if missing:
+        if missing := sorted(required - present):
             errors.append(
                 SupersetError(
                     message=f'One or more parameters are missing: {", ".join(missing)}',

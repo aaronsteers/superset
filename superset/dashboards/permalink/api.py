@@ -163,9 +163,7 @@ class DashboardPermalinkRestApi(BaseApi):
         """
         try:
             value = GetDashboardPermalinkCommand(actor=g.user, key=key).run()
-            if not value:
-                return self.response_404()
-            return self.response(200, **value)
+            return self.response(200, **value) if value else self.response_404()
         except DashboardAccessDeniedError as ex:
             return self.response(403, message=str(ex))
         except DashboardNotFoundError as ex:

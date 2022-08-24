@@ -95,10 +95,7 @@ class SupersetMetastoreCache(BaseCache):
         return GetKeyValueCommand(resource=RESOURCE, key=self.get_key(key)).run()
 
     def has(self, key: str) -> bool:
-        entry = self.get(key)
-        if entry:
-            return True
-        return False
+        return bool(entry := self.get(key))
 
     def delete(self, key: str) -> Any:
         # pylint: disable=import-outside-toplevel

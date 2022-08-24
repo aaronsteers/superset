@@ -45,9 +45,7 @@ def superset() -> None:
 
 
 # add sub-commands
-for load, module_name, is_pkg in pkgutil.walk_packages(
-    cli.__path__, cli.__name__ + "."
-):
+for load, module_name, is_pkg in pkgutil.walk_packages(cli.__path__, f"{cli.__name__}."):
     module = importlib.import_module(module_name)
     for attribute in module.__dict__.values():
         if isinstance(attribute, click.core.Command):
@@ -76,5 +74,5 @@ def version(verbose: bool) -> None:
     )
     print(Fore.BLUE + "-=" * 15)
     if verbose:
-        print("[DB] : " + "{}".format(db.engine))
+        print("[DB] : " + f"{db.engine}")
     print(Style.RESET_ALL)

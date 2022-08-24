@@ -489,7 +489,7 @@ class TableModelView(  # pylint: disable=too-many-ancestors
         resp = super().edit(pk)
         if isinstance(resp, str):
             return resp
-        return redirect("/superset/explore/table/{}/".format(pk))
+        return redirect(f"/superset/explore/table/{pk}/")
 
     @expose("/list/")
     @has_access

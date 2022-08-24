@@ -319,10 +319,7 @@ else:
         if username is not None:
             # pylint: disable=assigning-non-slot
             g.user = security_manager.find_user(username=username)
-        contents = {}
-        for path_ in files:
-            with open(path_) as file:
-                contents[path_.name] = file.read()
+        contents = {path_.name: Path(path_).read_text() for path_ in files}
         try:
             ImportDashboardsCommand(contents).run()
         except Exception:  # pylint: disable=broad-except
@@ -372,10 +369,7 @@ else:
         elif path_object.exists() and recursive:
             files.extend(path_object.rglob("*.yaml"))
             files.extend(path_object.rglob("*.yml"))
-        contents = {}
-        for path_ in files:
-            with open(path_) as file:
-                contents[path_.name] = file.read()
+        contents = {path_.name: Path(path_).read_text() for path_ in files}
         try:
             ImportDatasetsCommand(
                 contents, sync_columns=sync_columns, sync_metrics=sync_metrics

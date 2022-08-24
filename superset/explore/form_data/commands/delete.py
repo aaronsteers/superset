@@ -42,10 +42,7 @@ class DeleteFormDataCommand(BaseCommand, ABC):
         try:
             actor = self._cmd_params.actor
             key = self._cmd_params.key
-            state: TemporaryExploreState = cache_manager.explore_form_data_cache.get(
-                key
-            )
-            if state:
+            if state := cache_manager.explore_form_data_cache.get(key):
                 dataset_id = state["dataset_id"]
                 chart_id = state["chart_id"]
                 check_access(dataset_id, chart_id, actor)

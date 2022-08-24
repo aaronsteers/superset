@@ -36,10 +36,9 @@ class UpdateFilterStateCommand(UpdateTemporaryCacheCommand):
         value = cmd_params.value
         dashboard = DashboardDAO.get_by_id_or_slug(str(resource_id))
         if dashboard and value:
-            entry: Entry = cache_manager.filter_state_cache.get(
+            if entry := cache_manager.filter_state_cache.get(
                 cache_key(resource_id, key)
-            )
-            if entry:
+            ):
                 user_id = actor.get_user_id()
                 if entry["owner"] != user_id:
                     raise TemporaryCacheAccessDeniedError()

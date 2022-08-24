@@ -123,8 +123,7 @@ class ExportDashboardsCommand(ExportModelsCommand):
         # TODO (betodealmeida): move this logic to export_to_dict once this
         #  becomes the default export endpoint
         for key, new_name in JSON_KEYS.items():
-            value: Optional[str] = payload.pop(key, None)
-            if value:
+            if value := payload.pop(key, None):
                 try:
                     payload[new_name] = json.loads(value)
                 except (TypeError, json.decoder.JSONDecodeError):
@@ -139,8 +138,7 @@ class ExportDashboardsCommand(ExportModelsCommand):
             for target in native_filter.get("targets", []):
                 dataset_id = target.pop("datasetId", None)
                 if dataset_id is not None:
-                    dataset = DatasetDAO.find_by_id(dataset_id)
-                    if dataset:
+                    if dataset := DatasetDAO.find_by_id(dataset_id):
                         target["datasetUuid"] = str(dataset.uuid)
                         if export_related:
                             yield from ExportDatasetsCommand([dataset_id]).run()
@@ -153,11 +151,11 @@ class ExportDashboardsCommand(ExportModelsCommand):
         # if any charts or not referenced in position, we need to add them
         # in a new row
         referenced_charts = find_chart_uuids(payload["position"])
-        orphan_charts = {
-            chart for chart in model.slices if str(chart.uuid) not in referenced_charts
-        }
-
-        if orphan_charts:
+        if orphan_charts := {
+            chart
+            for chart in model.slices
+            if str(chart.uuid) not in referenced_charts
+        }:
             payload["position"] = append_charts(payload["position"], orphan_charts)
 
         payload["version"] = EXPORT_VERSION

@@ -140,7 +140,7 @@ def _add_table_metrics(datasource: SqlaTable) -> None:
     # may trigger an unnecessary and unexpected `after_update` event.
     columns, metrics = datasource.columns, datasource.metrics
 
-    if not any(col.column_name == "num_california" for col in columns):
+    if all(col.column_name != "num_california" for col in columns):
         col_state = str(column("state").compile(db.engine))
         col_num = str(column("num").compile(db.engine))
         columns.append(
@@ -150,7 +150,7 @@ def _add_table_metrics(datasource: SqlaTable) -> None:
             )
         )
 
-    if not any(col.metric_name == "sum__num" for col in metrics):
+    if all(col.metric_name != "sum__num" for col in metrics):
         col = str(column("num").compile(db.engine))
         metrics.append(SqlMetric(metric_name="sum__num", expression=f"SUM({col})"))
 

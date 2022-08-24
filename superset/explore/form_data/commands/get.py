@@ -41,10 +41,7 @@ class GetFormDataCommand(BaseCommand, ABC):
         try:
             actor = self._cmd_params.actor
             key = self._cmd_params.key
-            state: TemporaryExploreState = cache_manager.explore_form_data_cache.get(
-                key
-            )
-            if state:
+            if state := cache_manager.explore_form_data_cache.get(key):
                 check_access(state["dataset_id"], state["chart_id"], actor)
                 if self._refresh_timeout:
                     cache_manager.explore_form_data_cache.set(key, state)

@@ -335,14 +335,6 @@ LANGUAGES = {
 # incomplete and not well maintained.
 LANGUAGES = {}
 
-# ---------------------------------------------------
-# Feature flags
-# ---------------------------------------------------
-# Feature flags that are set by default go here. Their values can be
-# overwritten by those specified under FEATURE_FLAGS in superset_config.py
-# For example, DEFAULT_FEATURE_FLAGS = { 'FOO': True, 'BAR': False } here
-# and FEATURE_FLAGS = { 'BAR': True, 'BAZ': True } in superset_config.py
-# will result in combined feature flags of { 'FOO': True, 'BAR': True, 'BAZ': True }
 DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     # allow dashboard to use sub-domains to send chart request
     # you also need ENABLE_CORS and
@@ -422,16 +414,11 @@ DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     "UX_BETA": False,
     "GENERIC_CHART_AXES": False,
     "ALLOW_ADHOC_SUBQUERY": False,
+} | {
+    k[len("SUPERSET_FEATURE_") :]: parse_boolean_string(v)
+    for k, v in os.environ.items()
+    if re.search(r"^SUPERSET_FEATURE_\w+", k)
 }
-
-# Feature flags may also be set via 'SUPERSET_FEATURE_' prefixed environment vars.
-DEFAULT_FEATURE_FLAGS.update(
-    {
-        k[len("SUPERSET_FEATURE_") :]: parse_boolean_string(v)
-        for k, v in os.environ.items()
-        if re.search(r"^SUPERSET_FEATURE_\w+", k)
-    }
-)
 
 # This is merely a default.
 FEATURE_FLAGS: Dict[str, bool] = {}
@@ -551,11 +538,11 @@ SCREENSHOT_SELENIUM_ANIMATION_WAIT = 5
 # Image and file configuration
 # ---------------------------------------------------
 # The file upload folder, when using models with files
-UPLOAD_FOLDER = BASE_DIR + "/app/static/uploads/"
+UPLOAD_FOLDER = f"{BASE_DIR}/app/static/uploads/"
 UPLOAD_CHUNK_SIZE = 4096
 
 # The image upload folder, when using models with images
-IMG_UPLOAD_FOLDER = BASE_DIR + "/app/static/uploads/"
+IMG_UPLOAD_FOLDER = f"{BASE_DIR}/app/static/uploads/"
 
 # The image upload url, when using models with images
 IMG_UPLOAD_URL = "/static/uploads/"
@@ -726,11 +713,6 @@ SQLLAB_SCHEDULE_WARNING_MESSAGE = None
 
 # Force refresh while auto-refresh in dashboard
 DASHBOARD_AUTO_REFRESH_MODE: Literal["fetch", "force"] = "force"
-
-
-# Default celery config is to use SQLA as a broker, in a production setting
-# you'll want to use a proper broker as specified here:
-# http://docs.celeryproject.org/en/latest/getting-started/brokers/index.html
 
 
 class CeleryConfig:  # pylint: disable=too-few-public-methods

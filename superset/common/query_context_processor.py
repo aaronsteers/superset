@@ -107,7 +107,7 @@ class QueryContextProcessor:
 
         if query_obj and cache_key and not cache.is_loaded:
             try:
-                invalid_columns = [
+                if invalid_columns := [
                     col
                     for col in get_column_names_from_columns(query_obj.columns)
                     + get_column_names_from_metrics(query_obj.metrics or [])
@@ -115,8 +115,7 @@ class QueryContextProcessor:
                         col not in self._qc_datasource.column_names
                         and col != DTTM_ALIAS
                     )
-                ]
-                if invalid_columns:
+                ]:
                     raise QueryObjectValidationError(
                         _(
                             "Columns missing in datasource: %(invalid_columns)s",
@@ -219,8 +218,7 @@ class QueryContextProcessor:
         datasource = self._qc_datasource
         timestamp_format = None
         if datasource.type == "table":
-            dttm_col = datasource.get_column(query_object.granularity)
-            if dttm_col:
+            if dttm_col := datasource.get_column(query_object.granularity):
                 timestamp_format = dttm_col.python_date_format
 
         normalize_dttm_col(
@@ -355,8 +353,7 @@ class QueryContextProcessor:
         if self._query_context.result_format == ChartDataResultFormat.CSV:
             include_index = not isinstance(df.index, pd.RangeIndex)
             columns = list(df.columns)
-            verbose_map = self._qc_datasource.data.get("verbose_map", {})
-            if verbose_map:
+            if verbose_map := self._qc_datasource.data.get("verbose_map", {}):
                 df.columns = [verbose_map.get(column, column) for column in columns]
             result = csv.df_to_escaped_csv(
                 df, index=include_index, **config["CSV_EXPORT"]
@@ -397,8 +394,7 @@ class QueryContextProcessor:
         return return_value
 
     def get_cache_timeout(self) -> int:
-        cache_timeout_rv = self._query_context.get_cache_timeout()
-        if cache_timeout_rv:
+        if cache_timeout_rv := self._query_context.get_cache_timeout():
             return cache_timeout_rv
         return config["CACHE_DEFAULT_TIMEOUT"]
 

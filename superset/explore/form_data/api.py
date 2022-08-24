@@ -190,9 +190,7 @@ class ExploreFormDataRestApi(BaseApi, ABC):
                 form_data=item["form_data"],
             )
             result = UpdateFormDataCommand(args).run()
-            if not result:
-                return self.response_404()
-            return self.response(200, key=result)
+            return self.response(200, key=result) if result else self.response_404()
         except ValidationError as ex:
             return self.response(400, message=ex.messages)
         except (
@@ -247,9 +245,12 @@ class ExploreFormDataRestApi(BaseApi, ABC):
         try:
             args = CommandParameters(actor=g.user, key=key)
             form_data = GetFormDataCommand(args).run()
-            if not form_data:
-                return self.response_404()
-            return self.response(200, form_data=form_data)
+            return (
+                self.response(200, form_data=form_data)
+                if form_data
+                else self.response_404()
+            )
+
         except (
             ChartAccessDeniedError,
             DatasetAccessDeniedError,
@@ -303,9 +304,12 @@ class ExploreFormDataRestApi(BaseApi, ABC):
         try:
             args = CommandParameters(actor=g.user, key=key)
             result = DeleteFormDataCommand(args).run()
-            if not result:
-                return self.response_404()
-            return self.response(200, message="Deleted successfully")
+            return (
+                self.response(200, message="Deleted successfully")
+                if result
+                else self.response_404()
+            )
+
         except (
             ChartAccessDeniedError,
             DatasetAccessDeniedError,

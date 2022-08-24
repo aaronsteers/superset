@@ -84,13 +84,12 @@ class ImportExportRestApi(BaseApi):
                     fp.write(file_content.encode())
         buf.seek(0)
 
-        response = send_file(
+        return send_file(
             buf,
             mimetype="application/zip",
             as_attachment=True,
             attachment_filename=filename,
         )
-        return response
 
     @expose("/import/", methods=["POST"])
     @protect()

@@ -79,10 +79,10 @@ def refresh_druid(datasource: str, merge: bool) -> None:
         try:
             cluster.refresh_datasources(datasource_name=datasource, merge_flag=merge)
         except Exception as ex:  # pylint: disable=broad-except
-            print("Error while processing cluster '{}'\n{}".format(cluster, str(ex)))
+            print(f"Error while processing cluster '{cluster}'\n{str(ex)}")
             logger.exception(ex)
         cluster.metadata_last_refreshed = datetime.now()
-        print("Refreshed metadata from cluster " "[" + cluster.cluster_name + "]")
+        print(f"Refreshed metadata from cluster [{cluster.cluster_name}]")
     session.commit()
 
 
@@ -95,7 +95,7 @@ def update_datasources_cache() -> None:
 
     for database in db.session.query(Database).all():
         if database.allow_multi_schema_metadata_fetch:
-            print("Fetching {} datasources ...".format(database.name))
+            print(f"Fetching {database.name} datasources ...")
             try:
                 database.get_all_table_names_in_database(
                     force=True, cache=True, cache_timeout=24 * 60 * 60
@@ -104,7 +104,7 @@ def update_datasources_cache() -> None:
                     force=True, cache=True, cache_timeout=24 * 60 * 60
                 )
             except Exception as ex:  # pylint: disable=broad-except
-                print("{}".format(str(ex)))
+                print(f"{str(ex)}")
 
 
 @click.command()

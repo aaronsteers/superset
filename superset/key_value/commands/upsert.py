@@ -81,13 +81,12 @@ class UpsertKeyValueCommand(BaseCommand):
 
     def upsert(self) -> Optional[Key]:
         filter_ = get_filter(self.resource, self.key)
-        entry: KeyValueEntry = (
+        if entry := (
             db.session.query(KeyValueEntry)
             .filter_by(**filter_)
             .autoflush(False)
             .first()
-        )
-        if entry:
+        ):
             entry.value = pickle.dumps(self.value)
             entry.expires_on = self.expires_on
             entry.changed_on = datetime.now()

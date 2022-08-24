@@ -41,11 +41,10 @@ class GetExplorePermalinkCommand(BaseExplorePermalinkCommand):
         self.validate()
         try:
             key = decode_permalink_id(self.key, salt=self.salt)
-            value: Optional[ExplorePermalinkValue] = GetKeyValueCommand(
+            if value := GetKeyValueCommand(
                 resource=self.resource,
                 key=key,
-            ).run()
-            if value:
+            ).run():
                 chart_id: Optional[int] = value.get("chartId")
                 dataset_id = value["datasetId"]
                 check_access(dataset_id, chart_id, self.actor)

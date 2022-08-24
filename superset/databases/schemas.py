@@ -644,8 +644,7 @@ class ImportV1DatabaseSchema(Schema):
     def validate_password(self, data: Dict[str, Any], **kwargs: Any) -> None:
         """If sqlalchemy_uri has a masked password, password is required"""
         uuid = data["uuid"]
-        existing = db.session.query(Database).filter_by(uuid=uuid).first()
-        if existing:
+        if existing := db.session.query(Database).filter_by(uuid=uuid).first():
             return
 
         uri = data["sqlalchemy_uri"]
@@ -670,7 +669,6 @@ class EncryptedDict(EncryptedField, fields.Dict):
 
 def encrypted_field_properties(self, field: Any, **_) -> Dict[str, Any]:  # type: ignore
     ret = {}
-    if isinstance(field, EncryptedField):
-        if self.openapi_version.major > 2:
-            ret["x-encrypted-extra"] = True
+    if isinstance(field, EncryptedField) and self.openapi_version.major > 2:
+        ret["x-encrypted-extra"] = True
     return ret

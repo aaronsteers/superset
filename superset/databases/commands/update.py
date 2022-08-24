@@ -74,8 +74,7 @@ class UpdateDatabaseCommand(BaseCommand):
         self._model = DatabaseDAO.find_by_id(self._model_id)
         if not self._model:
             raise DatabaseNotFoundError()
-        database_name: Optional[str] = self._properties.get("database_name")
-        if database_name:
+        if database_name := self._properties.get("database_name"):
             # Check database_name uniqueness
             if not DatabaseDAO.validate_update_uniqueness(
                 self._model_id, database_name

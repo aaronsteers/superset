@@ -112,8 +112,7 @@ def load_configs(
             continue
 
         prefix = file_name.split("/")[0]
-        schema = schemas.get(f"{prefix}/")
-        if schema:
+        if schema := schemas.get(f"{prefix}/"):
             try:
                 config = load_yaml(file_name, content)
 
@@ -140,10 +139,7 @@ def is_valid_config(file_name: str) -> bool:
         return False
 
     # ensure extension is YAML
-    if path.suffix.lower() not in {".yaml", ".yml"}:
-        return False
-
-    return True
+    return path.suffix.lower() in {".yaml", ".yml"}
 
 
 def get_contents_from_bundle(bundle: ZipFile) -> Dict[str, str]:

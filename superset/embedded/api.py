@@ -42,9 +42,7 @@ class EmbeddedDashboardRestApi(BaseSupersetModelRestApi):
 
     @before_request
     def ensure_embedded_enabled(self) -> Optional[Response]:
-        if not is_feature_enabled("EMBEDDED_SUPERSET"):
-            return self.response_404()
-        return None
+        return None if is_feature_enabled("EMBEDDED_SUPERSET") else self.response_404()
 
     include_route_methods = RouteMethod.GET
     class_permission_name = "EmbeddedDashboard"

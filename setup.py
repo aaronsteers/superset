@@ -43,8 +43,8 @@ def get_git_sha() -> str:
 GIT_SHA = get_git_sha()
 version_info = {"GIT_SHA": GIT_SHA, "version": version_string}
 print("-==-" * 15)
-print("VERSION: " + version_string)
-print("GIT SHA: " + GIT_SHA)
+print(f"VERSION: {version_string}")
+print(f"GIT SHA: {GIT_SHA}")
 print("-==-" * 15)
 
 VERSION_INFO_FILE = os.path.join(BASE_DIR, "superset", "static", "version_info.json")
@@ -64,7 +64,9 @@ setup(
     zip_safe=False,
     entry_points={
         "console_scripts": ["superset=superset.cli.main:superset"],
-        "sqlalchemy.dialects": ["trinonative = sqlalchemy_trino.dialect:TrinoDialect"],
+        "sqlalchemy.dialects": [
+            "trinonative = sqlalchemy_trino.dialect:TrinoDialect"
+        ],
     },
     install_requires=[
         "backoff>=1.8.0",
@@ -142,7 +144,11 @@ setup(
         "firebolt": ["firebolt-sqlalchemy>=0.0.1"],
         "gsheets": ["shillelagh[gsheetsapi]>=1.0.11, <2"],
         "hana": ["hdbcli==2.4.162", "sqlalchemy_hana==0.4.0"],
-        "hive": ["pyhive[hive]>=0.6.1", "tableschema", "thrift>=0.11.0, <1.0.0"],
+        "hive": [
+            "pyhive[hive]>=0.6.1",
+            "tableschema",
+            "thrift>=0.11.0, <1.0.0",
+        ],
         "impala": ["impyla>0.16.2, <0.17"],
         "kusto": ["sqlalchemy-kusto>=1.0.1, <2"],
         "kylin": ["kylinpy>=2.8.1, <2.9"],
@@ -171,7 +177,7 @@ setup(
     author="Apache Software Foundation",
     author_email="dev@superset.apache.org",
     url="https://superset.apache.org/",
-    download_url="https://www.apache.org/dist/superset/" + version_string,
+    download_url=f"https://www.apache.org/dist/superset/{version_string}",
     classifiers=[
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

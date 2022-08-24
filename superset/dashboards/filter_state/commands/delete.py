@@ -30,10 +30,8 @@ class DeleteFilterStateCommand(DeleteTemporaryCacheCommand):
         resource_id = cmd_params.resource_id
         actor = cmd_params.actor
         key = cache_key(resource_id, cmd_params.key)
-        dashboard = DashboardDAO.get_by_id_or_slug(str(resource_id))
-        if dashboard:
-            entry: Entry = cache_manager.filter_state_cache.get(key)
-            if entry:
+        if dashboard := DashboardDAO.get_by_id_or_slug(str(resource_id)):
+            if entry := cache_manager.filter_state_cache.get(key):
                 if entry["owner"] != actor.get_user_id():
                     raise TemporaryCacheAccessDeniedError()
                 tab_id = cmd_params.tab_id

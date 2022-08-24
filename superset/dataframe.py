@@ -49,7 +49,7 @@ def df_to_records(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
             "DataFrame columns are not unique, some columns will be omitted."
         )
     columns = dframe.columns
-    return list(
+    return [
         dict(zip(columns, map(_convert_big_integers, row)))
         for row in zip(*[dframe[col] for col in columns])
-    )
+    ]

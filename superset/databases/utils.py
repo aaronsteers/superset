@@ -113,12 +113,10 @@ def make_url_safe(raw_url: Union[str, URL]) -> URL:
     :return:
     """
 
-    if isinstance(raw_url, str):
-        url = raw_url.strip()
-        try:
-            return make_url(url)  # noqa
-        except Exception:
-            raise DatabaseInvalidError()  # pylint: disable=raise-missing-from
-
-    else:
+    if not isinstance(raw_url, str):
         return raw_url
+    url = raw_url.strip()
+    try:
+        return make_url(url)  # noqa
+    except Exception:
+        raise DatabaseInvalidError()  # pylint: disable=raise-missing-from

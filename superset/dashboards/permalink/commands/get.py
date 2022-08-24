@@ -42,8 +42,7 @@ class GetDashboardPermalinkCommand(BaseDashboardPermalinkCommand):
         try:
             key = decode_permalink_id(self.key, salt=self.salt)
             command = GetKeyValueCommand(resource=self.resource, key=key)
-            value: Optional[DashboardPermalinkValue] = command.run()
-            if value:
+            if value := command.run():
                 DashboardDAO.get_by_id_or_slug(value["dashboardId"])
                 return value
             return None

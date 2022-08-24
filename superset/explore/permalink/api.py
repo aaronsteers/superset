@@ -157,9 +157,7 @@ class ExplorePermalinkRestApi(BaseApi):
         """
         try:
             value = GetExplorePermalinkCommand(actor=g.user, key=key).run()
-            if not value:
-                return self.response_404()
-            return self.response(200, **value)
+            return self.response(200, **value) if value else self.response_404()
         except ExplorePermalinkInvalidStateError as ex:
             return self.response(400, message=str(ex))
         except (
